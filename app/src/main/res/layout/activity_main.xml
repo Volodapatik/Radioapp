@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg">
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:src="@drawable/bg_party"
+        android:contentDescription="@null" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/scrim_bottom" />
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="24dp">
+
+            <!-- Header -->
+            <ImageView
+                android:id="@+id/btnSettings"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="@drawable/circle_icon_bg"
+                android:padding="10dp"
+                android:src="@drawable/ic_settings"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/pill_bg"
+                android:gravity="center"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="6dp"
+                app:layout_constraintBottom_toBottomOf="@id/btnSettings"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@id/btnSettings">
+
+                <View
+                    android:id="@+id/liveDot"
+                    android:layout_width="6dp"
+                    android:layout_height="6dp"
+                    android:background="@drawable/dot_live" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="SYNCED LIVE"
+                    android:textColor="@color/white"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.1" />
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/btnShare"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="@drawable/circle_icon_bg"
+                android:padding="10dp"
+                android:src="@drawable/ic_share"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <!-- Logo -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/logoCard"
+                android:layout_width="160dp"
+                android:layout_height="160dp"
+                android:layout_marginTop="40dp"
+                app:cardBackgroundColor="#1AFFFFFF"
+                app:cardCornerRadius="32dp"
+                app:cardElevation="0dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/btnSettings">
+
+                <ImageView
+                    android:id="@+id/logo"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:padding="24dp"
+                    android:src="@drawable/logo_large" />
+            </androidx.cardview.widget.CardView>
+
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="EDM PHONK RADIO"
+                android:textColor="@color/white"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.1"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/logoCard" />
+
+            <TextView
+                android:id="@+id/subtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="MANIFEST OF TIME • 24/7"
+                android:textColor="#80FFFFFF"
+                android:textSize="10sp"
+                android:letterSpacing="0.1"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/title" />
+
+            <!-- Visualizer -->
+            <ua.pp.edmphonkradio.VisualizerView
+                android:id="@+id/visualizer"
+                android:layout_width="0dp"
+                android:layout_height="64dp"
+                android:layout_marginTop="32dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/subtitle" />
+
+            <!-- Track Info -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/trackCard"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                app:cardBackgroundColor="#1A000000"
+                app:cardCornerRadius="20dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/visualizer">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="NOW PLAYING"
+                        android:textColor="@color/accent_cyan"
+                        android:textSize="9sp"
+                        android:textStyle="bold"
+                        android:letterSpacing="0.1" />
+
+                    <TextView
+                        android:id="@+id/currentTrackName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="—"
+                        android:textColor="@color/white"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="16dp"
+                        android:background="#1AFFFFFF" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:orientation="vertical">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="CYCLE" android:textColor="#60FFFFFF" android:textSize="8sp" />
+                            <TextView android:id="@+id/statCycle" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="@color/white" android:textSize="11sp" android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:orientation="vertical">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="TRACKS" android:textColor="#60FFFFFF" android:textSize="8sp" />
+                            <TextView android:id="@+id/statTracks" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="@color/white" android:textSize="11sp" android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:orientation="vertical">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="MODE" android:textColor="#60FFFFFF" android:textSize="8sp" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="SYNCED" android:textColor="@color/white" android:textSize="11sp" android:textStyle="bold" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Controls -->
+            <LinearLayout
+                android:id="@+id/controls"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:gravity="center"
+                android:orientation="horizontal"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/trackCard">
+
+                <ImageView
+                    android:id="@+id/btnTimer"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="@drawable/circle_icon_bg"
+                    android:padding="12dp"
+                    android:alpha="0.4"
+                    android:src="@drawable/ic_timer" />
+
+                <FrameLayout
+                    android:id="@+id/btnPlay"
+                    android:layout_width="88dp"
+                    android:layout_height="88dp"
+                    android:layout_marginHorizontal="32dp"
+                    android:background="@drawable/circle_white_bg"
+                    android:elevation="8dp">
+                    <ImageView
+                        android:id="@+id/playIcon"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:layout_gravity="center"
+                        android:layout_marginStart="4dp"
+                        android:src="@drawable/ic_play_triangle" />
+                </FrameLayout>
+
+                <ImageView
+                    android:id="@+id/btnHistory"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="@drawable/circle_icon_bg"
+                    android:padding="12dp"
+                    android:alpha="0.4"
+                    android:src="@drawable/ic_history" />
+            </LinearLayout>
+
+            <!-- Status -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:layout_marginBottom="24dp"
+                android:background="@drawable/stat_card_bg"
+                android:padding="12dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/controls">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="TIME SYNC STATUS"
+                    android:textColor="#60FFFFFF"
+                    android:textSize="9sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="ACTIVE ●"
+                    android:textColor="#4ADE80"
+                    android:textSize="9sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.core.widget.NestedScrollView>
+</FrameLayout>

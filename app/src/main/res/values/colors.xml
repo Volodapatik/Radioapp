@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg">#070814</color>
+    <color name="text">#EAF0FF</color>
+    <color name="text_muted">#A0A8C8</color>
+    <color name="accent_purple">#7C3AED</color>
+    <color name="accent_cyan">#22D3EE</color>
+    <color name="ok">#22C55E</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>
