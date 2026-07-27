@@ -1,94 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="8dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="2dp"
-    android:foreground="?android:attr/selectableItemBackground"
-    android:clickable="true"
-    android:focusable="true">
+    android:background="?android:attr/selectableItemBackground"
+    android:orientation="vertical"
+    android:padding="10dp">
 
+    <!-- URL - full visible, selectable -->
+    <TextView
+        android:id="@+id/tvUrl"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+        android:textColor="?android:attr/textColorPrimary"
+        android:fontFamily="monospace"
+        android:breakStrategy="simple"
+        android:hyphenationFrequency="none"
+        android:maxLines="5"
+        android:ellipsize="end"
+        android:textIsSelectable="true"
+        android:layout_marginBottom="6dp" />
+
+    <!-- Source badge -->
+    <TextView
+        android:id="@+id/tvSource"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="10sp"
+        android:textColor="?android:attr/textColorSecondary"
+        android:layout_marginBottom="6dp" />
+
+    <!-- Action buttons row -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="12dp">
+        android:orientation="horizontal"
+        android:gravity="end"
+        android:layout_marginTop="4dp">
 
-        <!-- URL -->
-        <TextView
-            android:id="@+id/tvUrl"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="13sp"
-            android:textColor="?android:attr/textColorPrimary"
-            android:fontFamily="monospace"
-            android:maxLines="3"
-            android:ellipsize="end"
-            android:layout_marginBottom="8dp" />
+        <!-- Copy URL button -->
+        <ImageButton
+            android:id="@+id/btnCopyUrl"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_copy"
+            android:contentDescription="Копіювати URL"
+            android:padding="10dp"
+            android:scaleType="centerInside"
+            android:layout_marginEnd="4dp"
+            android:focusable="true"
+            android:clickable="true" />
 
-        <!-- Meta info row -->
-        <LinearLayout
-            android:id="@+id/metaContainer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:visibility="gone"
-            android:layout_marginBottom="8dp">
+        <!-- Play in player button -->
+        <ImageButton
+            android:id="@+id/btnPlayUrl"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_play"
+            android:contentDescription="Відкрити у плеєрі"
+            android:padding="10dp"
+            android:scaleType="centerInside"
+            android:layout_marginEnd="4dp"
+            android:focusable="true"
+            android:clickable="true" />
 
-            <TextView
-                android:id="@+id/tvStreamType"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="12sp"
-                android:textColor="?android:attr/textColorSecondary"
-                android:layout_marginEnd="16dp" />
-
-            <TextView
-                android:id="@+id/tvResolution"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="12sp"
-                android:textColor="?android:attr/textColorSecondary" />
-        </LinearLayout>
-
-        <!-- Action buttons -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="end">
-
-            <ImageButton
-                android:id="@+id/btnCopyUrl"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/ic_copy"
-                android:contentDescription="@string/btn_copy"
-                android:padding="8dp"
-                android:layout_marginEnd="4dp" />
-
-            <ImageButton
-                android:id="@+id/btnSaveUrl"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/ic_save"
-                android:contentDescription="@string/btn_save"
-                android:padding="8dp"
-                android:layout_marginEnd="4dp" />
-
-            <ImageButton
-                android:id="@+id/btnPlayUrl"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/ic_play"
-                android:contentDescription="Відкрити у плеєрі"
-                android:padding="8dp" />
-        </LinearLayout>
+        <!-- Save button -->
+        <ImageButton
+            android:id="@+id/btnSaveUrl"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_save"
+            android:contentDescription="Зберегти"
+            android:padding="10dp"
+            android:scaleType="centerInside"
+            android:focusable="true"
+            android:clickable="true" />
     </LinearLayout>
-</androidx.cardview.widget.CardView>
+</LinearLayout>

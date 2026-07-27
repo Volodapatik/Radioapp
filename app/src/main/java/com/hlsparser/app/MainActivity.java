@@ -45,6 +45,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -266,15 +267,40 @@ public class MainActivity extends AppCompatActivity {
         bottomSheetBehavior.setPeekHeight(0);
         bottomSheetBehavior.setHideable(true);
 
-        // Drag handle click to toggle
+        // IMPORTANT: prevent BottomSheet from closing on touch/click inside
+        // Only close when user drags it down
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+
+        // BottomSheet state listener - prevent auto-close
+        bottomSheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+            @Override
+            public void onStateChanged(@NonNull View bottomSheet, int newState) {
+                // If user starts dragging down, let it collapse but don't hide completely
+                if (newState == BottomSheetBehavior.STATE_HIDDEN) {
+                    // When hiding, show peek so user can pull it back up
+                    handler.postDelayed(() -> {
+                        if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_HIDDEN && foundStreams.size() > 0) {
+                            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                        }
+                    }, 500);
+                }
+            }
+
+            @Override
+            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+                // Do nothing - just track
+            }
+        });
+
+        // Drag handle click to toggle expanded/collapsed
         View handle = findViewById(R.id.bottomSheetHandle);
         if (handle != null) {
             handle.setOnClickListener(v -> {
-                if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_HIDDEN ||
-                    bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_COLLAPSED) {
+                if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_COLLAPSED ||
+                    bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_HIDDEN) {
                     bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-                } else {
-                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+                } else if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
+                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
                 }
             });
         }
@@ -286,6 +312,11 @@ public class MainActivity extends AppCompatActivity {
         webView.setLayoutParams(new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT));
+
+        // Add WebView to container
+        if (webViewContainer != null) {
+            webViewContainer.addView(webView);
+        }
 
         // Enable JavaScript
         webView.getSettings().setJavaScriptEnabled(true);
@@ -561,7 +592,7 @@ public class MainActivity extends AppCompatActivity {
             tvResultsTitle.setVisibility(View.VISIBLE);
             tvResultsTitle.setText(getString(R.string.intercepted_streams) + " (" + foundStreams.size() + ")");
 
-            // Show bottom sheet with results
+            // Show bottom sheet - expand to show results
             bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
 
             if (foundStreams.size() > 1) {
@@ -966,7 +997,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
-            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+            // Just collapse, don't hide - user can pull it back up
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
         } else if (webView != null && webView.canGoBack()) {
             webView.goBack();
         } else {

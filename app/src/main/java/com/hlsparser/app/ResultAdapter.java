@@ -19,7 +19,8 @@ import java.util.List;
 
 /**
  * ResultAdapter - displays found HLS streams in a RecyclerView.
- * Each item shows the URL, type, resolution, and action buttons.
+ * Each item shows the URL with Copy/Play/Save buttons.
+ * BottomSheet will NOT close when buttons are clicked.
  */
 public class ResultAdapter extends RecyclerView.Adapter<ResultAdapter.ViewHolder> {
 
@@ -69,42 +70,42 @@ public class ResultAdapter extends RecyclerView.Adapter<ResultAdapter.ViewHolder
     public void onBindViewHolder(ViewHolder holder, int position) {
         HLSAnalyzer.HLSStream stream = streams.get(position);
 
-        // Set URL
+        // Set URL - full visible
         holder.tvUrl.setText(stream.getUrl());
+        holder.tvUrl.setTextIsSelectable(true);
 
-        // Set meta info
-        String typeLabel = getTypeLabel(stream.getType());
-        holder.tvStreamType.setText(context.getString(R.string.stream_type) + " " + typeLabel);
-
-        if (!stream.getResolution().isEmpty()) {
-            holder.tvResolution.setText(context.getString(R.string.resolution) + " " + stream.getResolution());
-            holder.metaContainer.setVisibility(View.VISIBLE);
-        } else {
-            holder.metaContainer.setVisibility(View.GONE);
-        }
+        // Set source
+        String source = stream.getSource() != null ? stream.getSource() : "unknown";
+        holder.tvSource.setText("Source: " + capitalize(source));
 
         // Copy button
-        holder.btnCopyUrl.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onCopy(stream);
-            } else {
+        holder.btnCopyUrl.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Copy the actual URL to clipboard
                 copyToClipboard(stream.getUrl());
             }
         });
 
         // Save button
-        holder.btnSaveUrl.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onSave(stream);
+        holder.btnSaveUrl.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (listener != null) {
+                    listener.onSave(stream);
+                }
             }
         });
 
         // Play button - open in external player
-        holder.btnPlayUrl.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onPlay(stream);
-            } else {
-                openInPlayer(stream.getUrl());
+        holder.btnPlayUrl.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (listener != null) {
+                    listener.onPlay(stream);
+                } else {
+                    openInPlayer(stream.getUrl());
+                }
             }
         });
     }
@@ -114,30 +115,16 @@ public class ResultAdapter extends RecyclerView.Adapter<ResultAdapter.ViewHolder
         return streams.size();
     }
 
-    private String getTypeLabel(String type) {
-        switch (type) {
-            case "master":
-                return "Master";
-            case "audio":
-                return "Audio";
-            case "video":
-                return "Video";
-            case "playlist":
-                return "Playlist";
-            case "live":
-                return "Live";
-            case "stream":
-                return "Stream";
-            default:
-                return "Unknown";
-        }
+    private String capitalize(String s) {
+        if (s == null || s.isEmpty()) return s;
+        return s.substring(0, 1).toUpperCase() + s.substring(1);
     }
 
     public void copyToClipboard(String text) {
         ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
         ClipData clip = ClipData.newPlainText("HLS URL", text);
         clipboard.setPrimaryClip(clip);
-        Toast.makeText(context, context.getString(R.string.copied), Toast.LENGTH_SHORT).show();
+        Toast.makeText(context, "URL скопійовано!", Toast.LENGTH_SHORT).show();
     }
 
     public void openInPlayer(String url) {
@@ -159,22 +146,18 @@ public class ResultAdapter extends RecyclerView.Adapter<ResultAdapter.ViewHolder
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvUrl;
-        TextView tvStreamType;
-        TextView tvResolution;
+        TextView tvSource;
         ImageButton btnCopyUrl;
         ImageButton btnSaveUrl;
         ImageButton btnPlayUrl;
-        View metaContainer;
 
         public ViewHolder(View itemView) {
             super(itemView);
             tvUrl = itemView.findViewById(R.id.tvUrl);
-            tvStreamType = itemView.findViewById(R.id.tvStreamType);
-            tvResolution = itemView.findViewById(R.id.tvResolution);
+            tvSource = itemView.findViewById(R.id.tvSource);
             btnCopyUrl = itemView.findViewById(R.id.btnCopyUrl);
             btnSaveUrl = itemView.findViewById(R.id.btnSaveUrl);
             btnPlayUrl = itemView.findViewById(R.id.btnPlayUrl);
-            metaContainer = itemView.findViewById(R.id.metaContainer);
         }
     }
 }
