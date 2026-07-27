@@ -22,6 +22,7 @@ import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceError;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -210,9 +211,9 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceResponse errorResponse) {
+            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError errorResponse) {
                 super.onReceivedError(view, request, errorResponse);
-                Log.e(TAG, "WebView error: " + errorResponse.getReasonPhrase());
+                Log.e(TAG, "WebView error: " + errorResponse.getDescription());
             }
         });
 
