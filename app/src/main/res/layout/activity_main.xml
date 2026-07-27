@@ -3,9 +3,10 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:id="@+id/coordinatorLayout"
     android:background="?android:attr/windowBackground">
 
-    <!-- Top Bar with URL input -->
+    <!-- Top Bar with URL input - stays at top -->
     <LinearLayout
         android:id="@+id/topBar"
         android:layout_width="match_parent"
@@ -42,7 +43,6 @@
                 android:layout_height="0dp"
                 android:layout_weight="1" />
 
-            <!-- Status indicator -->
             <ImageView
                 android:id="@+id/statusDot"
                 android:layout_width="8dp"
@@ -93,7 +93,6 @@
                 style="@style/Widget.MaterialComponents.Button" />
         </LinearLayout>
 
-        <!-- Monitoring button + stats (hidden by default) -->
         <LinearLayout
             android:id="@+id/monitorBar"
             android:layout_width="match_parent"
@@ -139,68 +138,15 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- WebView takes full screen below top bar -->
-    <FrameLayout
-        android:id="@+id/webViewContainer"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="130dp">
-
-        <WebView
-            android:id="@+id/webView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-        <TextView
-            android:id="@+id/tvWebViewPlaceholder"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:text="Вставте URL і натисніть Аналізувати"
-            android:textColor="?android:attr/textColorSecondary"
-            android:textSize="16sp"
-            android:padding="32dp" />
-
-        <ProgressBar
-            android:id="@+id/progressWebView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:visibility="gone" />
-    </FrameLayout>
-
-    <!-- Floating status bar -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/cardFloatingStatus"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|center_horizontal"
-        android:layout_marginBottom="160dp"
-        android:visibility="gone"
-        app:cardCornerRadius="20dp"
-        app:cardElevation="6dp">
-
-        <TextView
-            android:id="@+id/tvFloatingStatus"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp"
-            android:textSize="13sp"
-            android:textColor="@color/success"
-            android:background="@color/surface" />
-    </com.google.android.material.card.MaterialCardView>
-
-    <!-- Bottom Sheet for results -->
+    <!-- Bottom Sheet for results - slides from bottom -->
     <FrameLayout
         android:id="@+id/bottomSheetRoot"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+        app:behavior_peekHeight="0dp"
+        app:behavior_hideable="true">
 
-        <!-- Drag handle -->
         <View
             android:id="@+id/bottomSheetHandle"
             android:layout_width="40dp"
@@ -209,7 +155,6 @@
             android:layout_marginTop="8dp"
             android:background="@drawable/handle_bg" />
 
-        <!-- Results content -->
         <LinearLayout
             android:id="@+id/bottomSheetContent"
             android:layout_width="match_parent"
@@ -219,7 +164,6 @@
             android:paddingEnd="12dp"
             android:paddingBottom="16dp">
 
-            <!-- Results header -->
             <TextView
                 android:id="@+id/tvResultsTitle"
                 android:layout_width="match_parent"
@@ -231,14 +175,12 @@
                 android:visibility="gone"
                 android:layout_marginBottom="4dp" />
 
-            <!-- Results RecyclerView -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerResults"
                 android:layout_width="match_parent"
                 android:layout_height="200dp"
                 android:layout_marginBottom="8dp" />
 
-            <!-- Generate M3U8 Button -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnGenerateM3U8"
                 android:layout_width="match_parent"
@@ -250,7 +192,6 @@
                 app:iconGravity="textStart"
                 android:layout_marginBottom="6dp" />
 
-            <!-- M3U8 Output -->
             <TextView
                 android:id="@+id/tvM3U8Title"
                 android:layout_width="match_parent"
@@ -320,21 +261,28 @@
         </LinearLayout>
     </FrameLayout>
 
-    <!-- Progress overlay -->
-    <ProgressBar
-        android:id="@+id/progressBar"
+    <!-- Floating status bar -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardFloatingStatus"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:visibility="gone" />
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="20dp"
+        android:visibility="gone"
+        app:cardCornerRadius="20dp"
+        app:cardElevation="6dp">
 
-    <TextView
-        android:id="@+id/tvStatus"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginTop="30dp"
-        android:textColor="?android:attr/textColorSecondary"
-        android:visibility="gone" />
+        <TextView
+            android:id="@+id/tvFloatingStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:textSize="13sp"
+            android:textColor="@color/success"
+            android:background="@color/surface" />
+    </com.google.android.material.card.MaterialCardView>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

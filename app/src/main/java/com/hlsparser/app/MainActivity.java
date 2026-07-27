@@ -16,6 +16,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
@@ -55,7 +56,7 @@ import java.util.regex.Pattern;
 
 /**
  * MainActivity - HLS Parser with F12 DevTools-like network interception.
- * WebView occupies full screen (no ScrollView conflict).
+ * WebView is added dynamically below topBar for proper scrolling.
  * Results shown in a draggable BottomSheet.
  */
 public class MainActivity extends AppCompatActivity {
@@ -117,6 +118,9 @@ public class MainActivity extends AppCompatActivity {
     // Preferences
     private SharedPreferences prefs;
 
+    // Container for WebView
+    private FrameLayout webViewContainer;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -126,12 +130,77 @@ public class MainActivity extends AppCompatActivity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         initViews();
+        createWebViewContainer();
         initComponents();
         setupBottomSheet();
         setupWebView();
         setupListeners();
         loadPreferences();
         requestPermissions();
+    }
+
+    /**
+     * Create WebView container dynamically below topBar.
+     * This ensures WebView occupies full remaining screen space
+     * and scrolling works properly inside WebView.
+     */
+    private void createWebViewContainer() {
+        CoordinatorLayout coordinator = findViewById(R.id.coordinatorLayout);
+        if (coordinator == null) {
+            coordinator = findViewById(android.R.id.content);
+            // If not found, create the container programmatically
+            ViewGroup root = (ViewGroup) findViewById(android.R.id.content);
+            View topBar = findViewById(R.id.topBar);
+            FrameLayout container = new FrameLayout(this);
+            container.setLayoutParams(new CoordinatorLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT));
+
+            // We need to add WebView and bottomSheet under topBar
+            // Remove bottomSheet from its current position and re-add
+            View bottomSheet = findViewById(R.id.bottomSheetRoot);
+            if (bottomSheet != null && bottomSheet.getParent() != null) {
+                ((ViewGroup) bottomSheet.getParent()).removeView(bottomSheet);
+            }
+
+            // Add WebView placeholder
+            tvWebViewPlaceholder = new TextView(this);
+            tvWebViewPlaceholder.setText("Вставте URL і натисніть Аналізувати");
+            tvWebViewPlaceholder.setTextSize(16);
+            tvWebViewPlaceholder.setGravity(android.view.Gravity.CENTER);
+            tvWebViewPlaceholder.setPadding(64, 64, 64, 64);
+            tvWebViewPlaceholder.setTextColor(0xFF999999);
+            tvWebViewPlaceholder.setLayoutParams(new FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT));
+            container.addView(tvWebViewPlaceholder);
+
+            // Progress
+            progressWebView = new ProgressBar(this);
+            progressWebView.setLayoutParams(new FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    android.view.Gravity.CENTER));
+            progressWebView.setVisibility(View.GONE);
+            container.addView(progressWebView);
+
+            // Add container to root AFTER topBar
+            root.addView(container, 1);
+            webViewContainer = container;
+
+            // Re-add bottomSheet
+            if (bottomSheet != null) {
+                root.addView(bottomSheet);
+            }
+        } else {
+            // Use existing layout structure
+            webViewContainer = new FrameLayout(this);
+            webViewContainer.setLayoutParams(new CoordinatorLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT));
+            // CoordinatorLayout children are added in order; topBar is first
+            coordinator.addView(webViewContainer, 1);
+        }
     }
 
     private void initViews() {
@@ -149,11 +218,6 @@ public class MainActivity extends AppCompatActivity {
         tvStatus = findViewById(R.id.tvStatus);
         tvFloatingStatus = findViewById(R.id.tvFloatingStatus);
         cardFloatingStatus = findViewById(R.id.cardFloatingStatus);
-
-        // WebView
-        webView = findViewById(R.id.webView);
-        tvWebViewPlaceholder = findViewById(R.id.tvWebViewPlaceholder);
-        progressWebView = findViewById(R.id.progressWebView);
 
         // Bottom sheet
         bottomSheetRoot = findViewById(R.id.bottomSheetRoot);
@@ -218,17 +282,25 @@ public class MainActivity extends AppCompatActivity {
 
     @SuppressLint("SetJavaScriptEnabled")
     private void setupWebView() {
+        webView = new WebView(this);
+        webView.setLayoutParams(new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT));
+
+        // Enable JavaScript
         webView.getSettings().setJavaScriptEnabled(true);
         webView.getSettings().setDomStorageEnabled(true);
         webView.getSettings().setDatabaseEnabled(true);
         webView.getSettings().setAllowFileAccess(true);
         webView.getSettings().setAllowContentAccess(true);
-        webView.getSettings().setLoadWithOverviewMode(true);
-        webView.getSettings().setUseWideViewPort(true);
         webView.getSettings().setMediaPlaybackRequiresUserGesture(false);
         webView.getSettings().setSupportMultipleWindows(true);
         webView.getSettings().setBuiltInZoomControls(true);
         webView.getSettings().setDisplayZoomControls(false);
+
+        // DO NOT use loadWithOverviewMode and useWideViewPort — they break internal scrolling
+        webView.getSettings().setLoadWithOverviewMode(false);
+        webView.getSettings().setUseWideViewPort(false);
 
         // Enable cookies
         CookieManager cookieManager = CookieManager.getInstance();
@@ -251,9 +323,6 @@ public class MainActivity extends AppCompatActivity {
         // WebViewClient - F12 DevTools-like interception
         webView.setWebViewClient(new WebViewClient() {
 
-            /**
-             * KEY: Intercept ALL network requests like F12 DevTools.
-             */
             @Override
             public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
                 String url = request.getUrl().toString();
@@ -288,7 +357,7 @@ public class MainActivity extends AppCompatActivity {
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
                 super.onPageStarted(view, url, favicon);
                 currentUrl = url;
-                progressWebView.setVisibility(View.VISIBLE);
+                runOnUiThread(() -> progressWebView.setVisibility(View.VISIBLE));
                 if (isMonitoring) {
                     totalRequests = 0;
                     interceptedUrls.clear();
@@ -298,9 +367,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
-                progressWebView.setVisibility(View.GONE);
-                tvWebViewPlaceholder.setVisibility(View.GONE);
-                isPageLoaded = true;
+                runOnUiThread(() -> {
+                    progressWebView.setVisibility(View.GONE);
+                    if (tvWebViewPlaceholder != null) tvWebViewPlaceholder.setVisibility(View.GONE);
+                    isPageLoaded = true;
+                });
 
                 // Show monitoring button
                 if (!isMonitoring && isPageLoaded) {
@@ -321,7 +392,7 @@ public class MainActivity extends AppCompatActivity {
 
                 // Run JS detection if monitoring
                 if (isMonitoring) {
-                    injectDetectionScript();
+                    handler.postDelayed(() -> injectDetectionScript(), 1000);
                 }
             }
 
@@ -428,6 +499,11 @@ public class MainActivity extends AppCompatActivity {
         cardFloatingStatus.setVisibility(View.VISIBLE);
         tvFloatingStatus.setText(R.string.monitoring_active);
 
+        // Inject JS detection immediately
+        if (isPageLoaded) {
+            handler.postDelayed(() -> injectDetectionScript(), 500);
+        }
+
         Log.d(TAG, "Monitoring started");
     }
 
@@ -497,6 +573,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void injectDetectionScript() {
+        if (webView == null) return;
         webView.evaluateJavascript(getHLSDetectionScript(), new ValueCallback<String>() {
             @Override
             public void onReceiveValue(String result) {
@@ -565,9 +642,11 @@ public class MainActivity extends AppCompatActivity {
         statusDot.setVisibility(View.GONE);
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
 
-        // Load URL
-        tvWebViewPlaceholder.setVisibility(View.VISIBLE);
+        // Show WebView placeholder
+        if (tvWebViewPlaceholder != null) tvWebViewPlaceholder.setVisibility(View.VISIBLE);
         progressWebView.setVisibility(View.VISIBLE);
+
+        // Load URL in WebView
         webView.setVisibility(View.VISIBLE);
         webView.loadUrl(currentUrl);
 
@@ -888,7 +967,7 @@ public class MainActivity extends AppCompatActivity {
     public void onBackPressed() {
         if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
             bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-        } else if (webView.canGoBack()) {
+        } else if (webView != null && webView.canGoBack()) {
             webView.goBack();
         } else {
             super.onBackPressed();
