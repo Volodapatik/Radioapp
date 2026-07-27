@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="background">@color/night_background</color>
+    <color name="surface">@color/night_surface</color>
+    <color name="text_primary">@color/night_text_primary</color>
+    <color name="text_secondary">@color/night_text_secondary</color>
+    <color name="card_background">@color/night_card_background</color>
+    <color name="divider">@color/night_divider</color>
+</resources>

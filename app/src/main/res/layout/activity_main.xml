@@ -1,300 +1,235 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg">
+    android:background="?android:attr/windowBackground"
+    android:fillViewport="true">
 
-    <ImageView
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scaleType="centerCrop"
-        android:src="@drawable/bg_party"
-        android:contentDescription="@null" />
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@drawable/scrim_bottom" />
-
-    <androidx.core.widget.NestedScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:fillViewport="true">
-
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <!-- Header -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="24dp">
-
-            <!-- Header -->
-            <ImageView
-                android:id="@+id/btnSettings"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:background="@drawable/circle_icon_bg"
-                android:padding="10dp"
-                android:src="@drawable/ic_settings"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/pill_bg"
-                android:gravity="center"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="6dp"
-                app:layout_constraintBottom_toBottomOf="@id/btnSettings"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="@id/btnSettings">
-
-                <View
-                    android:id="@+id/liveDot"
-                    android:layout_width="6dp"
-                    android:layout_height="6dp"
-                    android:background="@drawable/dot_live" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:text="SYNCED LIVE"
-                    android:textColor="@color/white"
-                    android:textSize="10sp"
-                    android:textStyle="bold"
-                    android:letterSpacing="0.1" />
-            </LinearLayout>
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp">
 
             <ImageView
-                android:id="@+id/btnShare"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:background="@drawable/circle_icon_bg"
-                android:padding="10dp"
-                android:src="@drawable/ic_share"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <!-- Logo -->
-            <androidx.cardview.widget.CardView
-                android:id="@+id/logoCard"
-                android:layout_width="160dp"
-                android:layout_height="160dp"
-                android:layout_marginTop="40dp"
-                app:cardBackgroundColor="#1AFFFFFF"
-                app:cardCornerRadius="32dp"
-                app:cardElevation="0dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/btnSettings">
-
-                <ImageView
-                    android:id="@+id/logo"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:padding="24dp"
-                    android:src="@drawable/logo_large" />
-            </androidx.cardview.widget.CardView>
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_stream"
+                android:contentDescription="@string/app_name" />
 
             <TextView
-                android:id="@+id/title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="EDM PHONK RADIO"
-                android:textColor="@color/white"
-                android:textSize="22sp"
+                android:text="@string/app_name"
+                android:textSize="24sp"
                 android:textStyle="bold"
-                android:letterSpacing="0.1"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/logoCard" />
+                android:textColor="?android:attr/textColorPrimary"
+                android:layout_marginStart="12dp" />
+        </LinearLayout>
 
-            <TextView
-                android:id="@+id/subtitle"
-                android:layout_width="wrap_content"
+        <!-- URL Input -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:hint="@string/hint_url">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/inputUrl"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="MANIFEST OF TIME • 24/7"
-                android:textColor="#80FFFFFF"
-                android:textSize="10sp"
-                android:letterSpacing="0.1"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/title" />
+                android:inputType="textUri"
+                android:singleLine="true"
+                android:maxLines="1"
+                android:imeOptions="actionGo"
+                android:paddingTop="16dp"
+                android:paddingBottom="16dp" />
+        </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Visualizer -->
-            <ua.pp.edmphonkradio.VisualizerView
-                android:id="@+id/visualizer"
-                android:layout_width="0dp"
-                android:layout_height="64dp"
-                android:layout_marginTop="32dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/subtitle" />
+        <!-- Analyze Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAnalyze"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_analyze"
+            android:textSize="16sp"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
+            app:icon="@drawable/ic_search"
+            app:iconGravity="textStart"
+            android:layout_marginBottom="16dp" />
 
-            <!-- Track Info -->
-            <androidx.cardview.widget.CardView
-                android:id="@+id/trackCard"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
-                app:cardBackgroundColor="#1A000000"
-                app:cardCornerRadius="20dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/visualizer">
+        <!-- Progress -->
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone"
+            android:layout_marginBottom="16dp" />
 
-                <LinearLayout
+        <TextView
+            android:id="@+id/tvStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textColor="?android:attr/textColorSecondary"
+            android:visibility="gone"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Results Section -->
+        <TextView
+            android:id="@+id/tvResultsTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/title_results"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="?android:attr/textColorPrimary"
+            android:visibility="gone"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Results RecyclerView -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerResults"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:nestedScrollingEnabled="false"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Generate M3U8 Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnGenerateM3U8"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/generate_combined"
+            android:textSize="14sp"
+            android:visibility="gone"
+            app:icon="@drawable/ic_m3u8"
+            app:iconGravity="textStart"
+            android:layout_marginBottom="16dp" />
+
+        <!-- WebView Section -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/divider"
+            android:layout_marginBottom="12dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="WebView (Превʼю сторінки)"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="?android:attr/textColorSecondary"
+            android:layout_marginBottom="8dp" />
+
+        <!-- WebView Container -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/webViewContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="2dp"
+            android:visibility="visible">
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <WebView
+                    android:id="@+id/webView"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="NOW PLAYING"
-                        android:textColor="@color/accent_cyan"
-                        android:textSize="9sp"
-                        android:textStyle="bold"
-                        android:letterSpacing="0.1" />
-
-                    <TextView
-                        android:id="@+id/currentTrackName"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="—"
-                        android:textColor="@color/white"
-                        android:textSize="15sp"
-                        android:textStyle="bold" />
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:layout_marginTop="16dp"
-                        android:background="#1AFFFFFF" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:orientation="horizontal">
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:orientation="vertical">
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="CYCLE" android:textColor="#60FFFFFF" android:textSize="8sp" />
-                            <TextView android:id="@+id/statCycle" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="@color/white" android:textSize="11sp" android:textStyle="bold" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:orientation="vertical">
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="TRACKS" android:textColor="#60FFFFFF" android:textSize="8sp" />
-                            <TextView android:id="@+id/statTracks" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="@color/white" android:textSize="11sp" android:textStyle="bold" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:orientation="vertical">
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="MODE" android:textColor="#60FFFFFF" android:textSize="8sp" />
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="SYNCED" android:textColor="@color/white" android:textSize="11sp" android:textStyle="bold" />
-                        </LinearLayout>
-                    </LinearLayout>
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <!-- Controls -->
-            <LinearLayout
-                android:id="@+id/controls"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
-                android:gravity="center"
-                android:orientation="horizontal"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/trackCard">
-
-                <ImageView
-                    android:id="@+id/btnTimer"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:background="@drawable/circle_icon_bg"
-                    android:padding="12dp"
-                    android:alpha="0.4"
-                    android:src="@drawable/ic_timer" />
-
-                <FrameLayout
-                    android:id="@+id/btnPlay"
-                    android:layout_width="88dp"
-                    android:layout_height="88dp"
-                    android:layout_marginHorizontal="32dp"
-                    android:background="@drawable/circle_white_bg"
-                    android:elevation="8dp">
-                    <ImageView
-                        android:id="@+id/playIcon"
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:layout_gravity="center"
-                        android:layout_marginStart="4dp"
-                        android:src="@drawable/ic_play_triangle" />
-                </FrameLayout>
-
-                <ImageView
-                    android:id="@+id/btnHistory"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:background="@drawable/circle_icon_bg"
-                    android:padding="12dp"
-                    android:alpha="0.4"
-                    android:src="@drawable/ic_history" />
-            </LinearLayout>
-
-            <!-- Status -->
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
-                android:layout_marginBottom="24dp"
-                android:background="@drawable/stat_card_bg"
-                android:padding="12dp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/controls">
+                    android:layout_height="300dp"
+                    android:visibility="gone" />
 
                 <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="TIME SYNC STATUS"
-                    android:textColor="#60FFFFFF"
-                    android:textSize="9sp"
-                    android:textStyle="bold" />
+                    android:id="@+id/tvWebViewPlaceholder"
+                    android:layout_width="match_parent"
+                    android:layout_height="300dp"
+                    android:gravity="center"
+                    android:text="Сторінка зʼявиться тут після аналізу"
+                    android:textColor="?android:attr/textColorSecondary"
+                    android:textSize="14sp" />
 
-                <TextView
+                <ProgressBar
+                    android:id="@+id/progressWebView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="ACTIVE ●"
-                    android:textColor="#4ADE80"
-                    android:textSize="9sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
+                    android:layout_gravity="center"
+                    android:visibility="gone" />
+            </FrameLayout>
+        </androidx.cardview.widget.CardView>
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
-    </androidx.core.widget.NestedScrollView>
-</FrameLayout>
+        <!-- Generated M3U8 Output -->
+        <TextView
+            android:id="@+id/tvM3U8Title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Згенерований M3U8"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="?android:attr/textColorPrimary"
+            android:visibility="gone"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp" />
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/m3u8OutputContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="2dp"
+            android:visibility="gone"
+            android:layout_marginBottom="16dp">
+
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="200dp">
+
+                <TextView
+                    android:id="@+id/tvM3U8Output"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="12dp"
+                    android:fontFamily="monospace"
+                    android:textSize="12sp"
+                    android:textColor="?android:attr/textColorPrimary"
+                    android:background="@color/surface" />
+            </ScrollView>
+        </androidx.cardview.widget.CardView>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCopyM3U8"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_copy"
+            android:visibility="gone"
+            app:icon="@drawable/ic_copy"
+            app:iconGravity="textStart"
+            android:layout_marginBottom="16dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSaveM3U8"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_save"
+            android:visibility="gone"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            app:icon="@drawable/ic_save"
+            app:iconGravity="textStart"
+            android:layout_marginBottom="24dp" />
+
+    </LinearLayout>
+</ScrollView>

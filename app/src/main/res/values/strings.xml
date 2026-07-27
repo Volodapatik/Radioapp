@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">HLS Parser</string>
+    <string name="hint_url">Вставте URL сторінки з відео</string>
+    <string name="btn_analyze">Аналізувати</string>
+    <string name="btn_copy">Копіювати</string>
+    <string name="btn_save">Зберегти</string>
+    <string name="btn_generate">Генерувати M3U8</string>
+    <string name="title_results">Знайдені HLS-потоки</string>
+    <string name="no_results">HLS-потоки не знайдено</string>
+    <string name="analyzing">Аналізую…</string>
+    <string name="done">Завершено</string>
+    <string name="copied">Скопійовано!</string>
+    <string name="saved">Збережено!</string>
+    <string name="invalid_url">Невірний URL</string>
+    <string name="stream_type">Тип:</string>
+    <string name="resolution">Роздільність:</string>
+    <string name="generate_combined">Створити комбінований M3U8</string>
+</resources>
