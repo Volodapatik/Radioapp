@@ -16,4 +16,17 @@
     <string name="stream_type">Тип:</string>
     <string name="resolution">Роздільність:</string>
     <string name="generate_combined">Створити комбінований M3U8</string>
+    <string name="monitoring_active">Моніторинг активний — натисніть Play на сторінці</string>
+    <string name="monitoring_stopped">Моніторинг зупинено</string>
+    <string name="btn_stop_monitoring">Зупинити моніторинг</string>
+    <string name="btn_start_monitoring">Почати моніторинг</string>
+    <string name="network_requests">Мережеві запити</string>
+    <string name="intercepted_streams">Перехоплені потоки</string>
+    <string name="source_intercepted">перехоплено</string>
+    <string name="source_html">HTML</string>
+    <string name="source_js">JavaScript</string>
+    <string name="source_network">мережа</string>
+    <string name="status_monitoring">Моніторинг…</string>
+    <string name="status_idle">Очікування</string>
+    <string name="hint_wait_for_play">Чекаємо на запуск відео…</string>
 </resources>
