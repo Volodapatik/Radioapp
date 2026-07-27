@@ -16,6 +16,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
@@ -26,7 +27,9 @@ import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -38,11 +41,11 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 
 import java.io.File;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -52,36 +55,48 @@ import java.util.regex.Pattern;
 
 /**
  * MainActivity - HLS Parser with F12 DevTools-like network interception.
- * Intercepts all network requests through shouldInterceptRequest to detect
- * .m3u8 streams that load dynamically (e.g. when user clicks Play).
+ * WebView occupies full screen (no ScrollView conflict).
+ * Results shown in a draggable BottomSheet.
  */
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "HLSParser";
 
-    // UI Components
+    // Top bar
     private EditText inputUrl;
     private MaterialButton btnAnalyze;
     private MaterialButton btnMonitor;
-    private MaterialButton btnGenerateM3U8;
-    private MaterialButton btnCopyM3U8;
-    private MaterialButton btnSaveM3U8;
-    private ProgressBar progressBar;
+    private LinearLayout monitorBar;
+
+    // Status
     private TextView tvStatus;
-    private TextView tvResultsTitle;
-    private TextView tvWebViewPlaceholder;
-    private TextView tvM3U8Title;
-    private TextView tvM3U8Output;
-    private ProgressBar progressWebView;
+    private TextView tvFloatingStatus;
+    private TextView tvMonitorStatus;
     private TextView tvRequestCount;
     private TextView tvM3u8Count;
-    private MaterialCardView cardNetworkStats;
-    private TextView tvMonitorStatus;
     private ImageView statusDot;
+    private MaterialCardView cardFloatingStatus;
 
+    // WebView
     private WebView webView;
+    private TextView tvWebViewPlaceholder;
+    private ProgressBar progressWebView;
+
+    // Bottom sheet
+    private BottomSheetBehavior<FrameLayout> bottomSheetBehavior;
+    private FrameLayout bottomSheetRoot;
+    private TextView tvResultsTitle;
     private RecyclerView recyclerResults;
     private ResultAdapter resultAdapter;
+    private MaterialButton btnGenerateM3U8;
+    private TextView tvM3U8Title;
+    private TextView tvM3U8Output;
+    private MaterialButton btnCopyM3U8;
+    private MaterialButton btnSaveM3U8;
+    private LinearLayout m3u8Buttons;
+
+    // Progress overlay
+    private ProgressBar progressBar;
 
     // Core components
     private HLSAnalyzer hlsAnalyzer;
@@ -96,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
     private Set<String> interceptedUrls = new HashSet<>();
     private int totalRequests = 0;
 
-    // Handler for delayed analysis
+    // Handler
     private Handler handler = new Handler(Looper.getMainLooper());
 
     // Preferences
@@ -107,8 +122,12 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Keep screen on
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
         initViews();
         initComponents();
+        setupBottomSheet();
         setupWebView();
         setupListeners();
         loadPreferences();
@@ -116,26 +135,39 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initViews() {
+        // Top bar
         inputUrl = findViewById(R.id.inputUrl);
         btnAnalyze = findViewById(R.id.btnAnalyze);
         btnMonitor = findViewById(R.id.btnMonitor);
-        btnGenerateM3U8 = findViewById(R.id.btnGenerateM3U8);
-        btnCopyM3U8 = findViewById(R.id.btnCopyM3U8);
-        btnSaveM3U8 = findViewById(R.id.btnSaveM3U8);
-        progressBar = findViewById(R.id.progressBar);
-        tvStatus = findViewById(R.id.tvStatus);
-        tvResultsTitle = findViewById(R.id.tvResultsTitle);
-        tvWebViewPlaceholder = findViewById(R.id.tvWebViewPlaceholder);
-        tvM3U8Title = findViewById(R.id.tvM3U8Title);
-        tvM3U8Output = findViewById(R.id.tvM3U8Output);
-        progressWebView = findViewById(R.id.progressWebView);
-        webView = findViewById(R.id.webView);
-        recyclerResults = findViewById(R.id.recyclerResults);
+        monitorBar = findViewById(R.id.monitorBar);
         tvRequestCount = findViewById(R.id.tvRequestCount);
         tvM3u8Count = findViewById(R.id.tvM3u8Count);
-        cardNetworkStats = findViewById(R.id.cardNetworkStats);
         tvMonitorStatus = findViewById(R.id.tvMonitorStatus);
         statusDot = findViewById(R.id.statusDot);
+
+        // Status
+        tvStatus = findViewById(R.id.tvStatus);
+        tvFloatingStatus = findViewById(R.id.tvFloatingStatus);
+        cardFloatingStatus = findViewById(R.id.cardFloatingStatus);
+
+        // WebView
+        webView = findViewById(R.id.webView);
+        tvWebViewPlaceholder = findViewById(R.id.tvWebViewPlaceholder);
+        progressWebView = findViewById(R.id.progressWebView);
+
+        // Bottom sheet
+        bottomSheetRoot = findViewById(R.id.bottomSheetRoot);
+        tvResultsTitle = findViewById(R.id.tvResultsTitle);
+        recyclerResults = findViewById(R.id.recyclerResults);
+        btnGenerateM3U8 = findViewById(R.id.btnGenerateM3U8);
+        tvM3U8Title = findViewById(R.id.tvM3U8Title);
+        tvM3U8Output = findViewById(R.id.tvM3U8Output);
+        btnCopyM3U8 = findViewById(R.id.btnCopyM3U8);
+        btnSaveM3U8 = findViewById(R.id.btnSaveM3U8);
+        m3u8Buttons = findViewById(R.id.m3u8Buttons);
+
+        // Progress overlay
+        progressBar = findViewById(R.id.progressBar);
     }
 
     private void initComponents() {
@@ -164,6 +196,26 @@ public class MainActivity extends AppCompatActivity {
         recyclerResults.setAdapter(resultAdapter);
     }
 
+    private void setupBottomSheet() {
+        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheetRoot);
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        bottomSheetBehavior.setPeekHeight(0);
+        bottomSheetBehavior.setHideable(true);
+
+        // Drag handle click to toggle
+        View handle = findViewById(R.id.bottomSheetHandle);
+        if (handle != null) {
+            handle.setOnClickListener(v -> {
+                if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_HIDDEN ||
+                    bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_COLLAPSED) {
+                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                } else {
+                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+                }
+            });
+        }
+    }
+
     @SuppressLint("SetJavaScriptEnabled")
     private void setupWebView() {
         webView.getSettings().setJavaScriptEnabled(true);
@@ -174,33 +226,33 @@ public class MainActivity extends AppCompatActivity {
         webView.getSettings().setLoadWithOverviewMode(true);
         webView.getSettings().setUseWideViewPort(true);
         webView.getSettings().setMediaPlaybackRequiresUserGesture(false);
+        webView.getSettings().setSupportMultipleWindows(true);
+        webView.getSettings().setBuiltInZoomControls(true);
+        webView.getSettings().setDisplayZoomControls(false);
 
         // Enable cookies
         CookieManager cookieManager = CookieManager.getInstance();
         cookieManager.setAcceptCookie(true);
         cookieManager.setAcceptThirdPartyCookies(webView, true);
 
-        // Set User-Agent (Android Chrome)
+        // Set User-Agent
         String userAgent = "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 " +
                 "(KHTML, like Gecko) Chrome/122.0.0.0 Mobile Safari/537.36";
         webView.getSettings().setUserAgentString(userAgent);
 
         // Enable mixed content
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            webView.getSettings().setMixedContentMode(0); // MIXED_CONTENT_ALWAYS_ALLOW
+            webView.getSettings().setMixedContentMode(0);
         }
 
-        // Add JavaScript interface
+        // JavaScript interface
         webView.addJavascriptInterface(new WebAppInterface(), "Android");
 
-        // WebViewClient - intercept requests and handle navigation
+        // WebViewClient - F12 DevTools-like interception
         webView.setWebViewClient(new WebViewClient() {
 
             /**
-             * KEY METHOD: Intercept all network requests like F12 DevTools.
-             * Every time the WebView requests a resource (JS, CSS, images, XHR, fetch),
-             * this method is called BEFORE the request goes to the network.
-             * We check if the URL contains .m3u8 and capture it.
+             * KEY: Intercept ALL network requests like F12 DevTools.
              */
             @Override
             public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
@@ -208,25 +260,19 @@ public class MainActivity extends AppCompatActivity {
                 totalRequests++;
 
                 if (isMonitoring) {
-                    runOnUiThread(() -> {
-                        tvRequestCount.setText(String.valueOf(totalRequests));
-                    });
+                    runOnUiThread(() -> tvRequestCount.setText(String.valueOf(totalRequests)));
 
-                    // Check for .m3u8 in URL
                     if (url.toLowerCase().contains(".m3u8")) {
                         Log.d(TAG, "INTERCEPTED .m3u8: " + url);
                         captureStream(url, "intercepted");
                     }
-
-                    // Also check for common HLS patterns in URL path
-                    if (url.toLowerCase().contains("manifest") && 
+                    if (url.toLowerCase().contains("manifest") &&
                         (url.toLowerCase().contains("mpd") || url.toLowerCase().contains("m3u8"))) {
                         Log.d(TAG, "INTERCEPTED manifest: " + url);
                         captureStream(url, "intercepted");
                     }
                 }
 
-                // Let the request proceed normally - we just observe
                 return super.shouldInterceptRequest(view, request);
             }
 
@@ -256,11 +302,9 @@ public class MainActivity extends AppCompatActivity {
                 tvWebViewPlaceholder.setVisibility(View.GONE);
                 isPageLoaded = true;
 
-                // Show monitoring button when page loads
+                // Show monitoring button
                 if (!isMonitoring && isPageLoaded) {
-                    runOnUiThread(() -> {
-                        btnMonitor.setVisibility(View.VISIBLE);
-                    });
+                    runOnUiThread(() -> monitorBar.setVisibility(View.VISIBLE));
                 }
 
                 // Extract HTML for static analysis
@@ -275,7 +319,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
-                // If monitoring is active, run JS detection too
+                // Run JS detection if monitoring
                 if (isMonitoring) {
                     injectDetectionScript();
                 }
@@ -288,7 +332,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // WebChromeClient - progress and console
+        // WebChromeClient - console monitoring
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
             public void onProgressChanged(WebView view, int newProgress) {
@@ -302,8 +346,6 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public boolean onConsoleMessage(android.webkit.ConsoleMessage consoleMessage) {
-                Log.d(TAG, "Console: " + consoleMessage.message());
-                // Check console for .m3u8 URLs logged by injected scripts
                 String msg = consoleMessage.message();
                 if (msg != null && msg.contains(".m3u8")) {
                     Pattern p = Pattern.compile("https?://[^\\s\"']+\\.m3u8[^\\s\"']*");
@@ -320,26 +362,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupListeners() {
-        // Analyze button - loads page and starts monitoring
         btnAnalyze.setOnClickListener(v -> analyzePage());
-
-        // Monitor button - toggle monitoring
         btnMonitor.setOnClickListener(v -> toggleMonitoring());
-
-        // Generate M3U8 button
         btnGenerateM3U8.setOnClickListener(v -> generateCombinedM3U8());
-
-        // Copy M3U8 button
         btnCopyM3U8.setOnClickListener(v -> {
             if (tvM3U8Output.getText().toString().length() > 0) {
                 copyToClipboard(tvM3U8Output.getText().toString());
             }
         });
-
-        // Save M3U8 button
         btnSaveM3U8.setOnClickListener(v -> saveGeneratedM3U8());
 
-        // Enter key on URL input
         inputUrl.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_GO) {
                 analyzePage();
@@ -369,9 +401,6 @@ public class MainActivity extends AppCompatActivity {
 
     // ===== MONITORING =====
 
-    /**
-     * Toggle network monitoring on/off.
-     */
     private void toggleMonitoring() {
         if (isMonitoring) {
             stopMonitoring();
@@ -386,7 +415,7 @@ public class MainActivity extends AppCompatActivity {
         totalRequests = 0;
 
         // Show monitoring UI
-        cardNetworkStats.setVisibility(View.VISIBLE);
+        monitorBar.setVisibility(View.VISIBLE);
         tvRequestCount.setText("0");
         tvM3u8Count.setText("0");
         btnMonitor.setText(R.string.btn_stop_monitoring);
@@ -395,9 +424,9 @@ public class MainActivity extends AppCompatActivity {
         statusDot.setVisibility(View.VISIBLE);
         statusDot.setImageResource(R.drawable.status_active);
 
-        tvStatus.setVisibility(View.VISIBLE);
-        tvStatus.setText(getString(R.string.monitoring_active));
-        tvStatus.setTextColor(ContextCompat.getColor(this, R.color.success));
+        // Floating status
+        cardFloatingStatus.setVisibility(View.VISIBLE);
+        tvFloatingStatus.setText(R.string.monitoring_active);
 
         Log.d(TAG, "Monitoring started");
     }
@@ -408,11 +437,9 @@ public class MainActivity extends AppCompatActivity {
         btnMonitor.setText(R.string.btn_start_monitoring);
         tvMonitorStatus.setText(R.string.monitoring_stopped);
         statusDot.setImageResource(R.drawable.status_stopped);
+        cardFloatingStatus.setVisibility(View.GONE);
 
-        tvStatus.setText(getString(R.string.done) + " — " + foundStreams.size() + " потоків знайдено");
-        tvStatus.setTextColor(ContextCompat.getColor(this, R.color.text_primary));
-
-        // Update results UI
+        // Update results
         updateResultsUI();
 
         Log.d(TAG, "Monitoring stopped. Found: " + foundStreams.size() + " streams");
@@ -420,12 +447,10 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Capture a .m3u8 URL from network interception.
-     * This is the core "F12 DevTools" functionality.
      */
     private void captureStream(String url, String source) {
         if (url == null || url.isEmpty()) return;
 
-        // Clean URL
         String cleanUrl = url.replace("\\u002F", "/")
                 .replace("\\/", "/")
                 .replace("\\\"", "\"")
@@ -434,46 +459,43 @@ public class MainActivity extends AppCompatActivity {
 
         if (!cleanUrl.contains(".m3u8")) return;
 
-        // Check if we already captured this URL
         synchronized (interceptedUrls) {
             if (interceptedUrls.contains(cleanUrl)) return;
             interceptedUrls.add(cleanUrl);
         }
 
-        // Add to found streams
         HLSAnalyzer.HLSStream stream = new HLSAnalyzer.HLSStream(cleanUrl);
         stream.setSource(source);
-
         foundStreams.add(stream);
 
-        // Update UI
         runOnUiThread(() -> {
             tvM3u8Count.setText(String.valueOf(interceptedUrls.size()));
 
-            // Show immediate toast for discovery
-            Toast.makeText(this, "HLS знайдено: " + source, Toast.LENGTH_SHORT).show();
+            // Floating notification
+            cardFloatingStatus.setVisibility(View.VISIBLE);
+            tvFloatingStatus.setText("HLS: " + source);
+            handler.postDelayed(() -> {
+                if (!isMonitoring) {
+                    cardFloatingStatus.setVisibility(View.GONE);
+                }
+            }, 3000);
 
-            // Update RecyclerView live
-            resultAdapter.addStreams(new ArrayList<>());
+            // Update RecyclerView
             resultAdapter.setStreams(new ArrayList<>(foundStreams));
             tvResultsTitle.setVisibility(View.VISIBLE);
             tvResultsTitle.setText(getString(R.string.intercepted_streams) + " (" + foundStreams.size() + ")");
+
+            // Show bottom sheet with results
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
 
             if (foundStreams.size() > 1) {
                 btnGenerateM3U8.setVisibility(View.VISIBLE);
             }
 
-            // Auto-generate M3U8 if we have streams
-            if (!foundStreams.isEmpty()) {
-                autoGenerateM3U8();
-            }
+            autoGenerateM3U8();
         });
     }
 
-    /**
-     * Inject JavaScript to detect .m3u8 URLs in the page.
-     * Runs periodically during monitoring.
-     */
     private void injectDetectionScript() {
         webView.evaluateJavascript(getHLSDetectionScript(), new ValueCallback<String>() {
             @Override
@@ -496,9 +518,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * Main analysis method.
-     */
     private void analyzePage() {
         String url = inputUrl.getText().toString().trim();
 
@@ -507,12 +526,10 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        // Add protocol if missing
         if (!url.startsWith("http://") && !url.startsWith("https://")) {
             url = "https://" + url;
         }
 
-        // Validate URL format
         if (!url.contains(".") || url.contains(" ")) {
             Toast.makeText(this, getString(R.string.invalid_url), Toast.LENGTH_SHORT).show();
             return;
@@ -523,10 +540,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startAnalysis() {
-        // Save URL
         prefs.edit().putString("lastUrl", currentUrl).apply();
 
-        // Reset state
         foundStreams.clear();
         resultAdapter.setStreams(new ArrayList<>());
         pageHtmlContent = "";
@@ -534,40 +549,37 @@ public class MainActivity extends AppCompatActivity {
         interceptedUrls.clear();
         totalRequests = 0;
 
-        // Show loading
-        progressBar.setVisibility(View.VISIBLE);
-        tvStatus.setVisibility(View.VISIBLE);
-        tvStatus.setText(getString(R.string.analyzing));
-        tvStatus.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
+        // Reset UI
+        progressBar.setVisibility(View.GONE);
+        tvStatus.setVisibility(View.GONE);
         tvResultsTitle.setVisibility(View.GONE);
         btnGenerateM3U8.setVisibility(View.GONE);
-        btnMonitor.setVisibility(View.GONE);
+        monitorBar.setVisibility(View.GONE);
         tvM3U8Title.setVisibility(View.GONE);
-        tvM3U8Output.setVisibility(View.GONE);
+        findViewById(R.id.m3u8OutputContainer).setVisibility(View.GONE);
         btnCopyM3U8.setVisibility(View.GONE);
         btnSaveM3U8.setVisibility(View.GONE);
-        tvWebViewPlaceholder.setVisibility(View.VISIBLE);
-        cardNetworkStats.setVisibility(View.GONE);
+        m3u8Buttons.setVisibility(View.GONE);
+        cardFloatingStatus.setVisibility(View.GONE);
         tvMonitorStatus.setVisibility(View.GONE);
         statusDot.setVisibility(View.GONE);
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
 
-        // Load URL in WebView
+        // Load URL
+        tvWebViewPlaceholder.setVisibility(View.VISIBLE);
+        progressWebView.setVisibility(View.VISIBLE);
         webView.setVisibility(View.VISIBLE);
         webView.loadUrl(currentUrl);
 
-        // After page loads, auto-start monitoring
+        // Auto-start monitoring after page loads
         handler.postDelayed(() -> {
             if (isPageLoaded) {
                 startMonitoring();
-                // Also do static HTML analysis
                 performStaticAnalysis();
             }
-        }, 3000); // Wait 3 seconds for page to load
+        }, 3000);
     }
 
-    /**
-     * Analyze HTML content statically for .m3u8 URLs.
-     */
     private void performStaticAnalysis() {
         if (pageHtmlContent.isEmpty()) {
             webView.evaluateJavascript(getHtmlExtractionScript(), new ValueCallback<String>() {
@@ -594,7 +606,6 @@ public class MainActivity extends AppCompatActivity {
             captureStream(stream.getUrl(), "html");
         }
 
-        // Also inject JS detection
         injectDetectionScript();
     }
 
@@ -607,6 +618,8 @@ public class MainActivity extends AppCompatActivity {
             tvResultsTitle.setText(getString(R.string.intercepted_streams) + " (" + foundStreams.size() + ")");
             resultAdapter.setStreams(foundStreams);
             btnGenerateM3U8.setVisibility(View.VISIBLE);
+            m3u8Buttons.setVisibility(View.VISIBLE);
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
             autoGenerateM3U8();
         }
     }
@@ -637,6 +650,7 @@ public class MainActivity extends AppCompatActivity {
         tvM3U8Output.setText(m3u8Content);
         btnCopyM3U8.setVisibility(View.VISIBLE);
         btnSaveM3U8.setVisibility(View.VISIBLE);
+        m3u8Buttons.setVisibility(View.VISIBLE);
     }
 
     private void generateCombinedM3U8() {
@@ -727,19 +741,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // ===== JavaScript Injection Scripts =====
+    // ===== JavaScript Detection Scripts =====
 
     private String getHtmlExtractionScript() {
-        return "(function() {" +
-                "var html = document.documentElement.outerHTML;" +
-                "return html;" +
-                "})();";
+        return "(function() { return document.documentElement.outerHTML; })();";
     }
 
-    /**
-     * JavaScript to scan the page for .m3u8 URLs.
-     * Checks: attributes, scripts, Hls.js, Video.js, Shaka Player, Performance API.
-     */
     private String getHLSDetectionScript() {
         return "(function() {" +
                 "var found = [];" +
@@ -760,7 +767,7 @@ public class MainActivity extends AppCompatActivity {
                 "            if (!seen[matches[k]]) {" +
                 "              seen[matches[k]] = true;" +
                 "              found.push(matches[k]);" +
-                "              console.log('HLS FOUND (attr): ' + matches[k]);" +
+                "              console.log('HLS_FOUND:' + matches[k]);" +
                 "            }" +
                 "          }" +
                 "        }" +
@@ -769,7 +776,7 @@ public class MainActivity extends AppCompatActivity {
                 "  }" +
                 "}" +
 
-                // Scan all script tags content
+                // Scan all script tags
                 "var scripts = document.querySelectorAll('script');" +
                 "for (var i = 0; i < scripts.length; i++) {" +
                 "  var text = scripts[i].textContent || '';" +
@@ -779,33 +786,31 @@ public class MainActivity extends AppCompatActivity {
                 "      if (!seen[matches[j]]) {" +
                 "        seen[matches[j]] = true;" +
                 "        found.push(matches[j]);" +
-                "        console.log('HLS FOUND (script): ' + matches[j]);" +
+                "        console.log('HLS_FOUND:' + matches[j]);" +
                 "      }" +
                 "    }" +
                 "  }" +
                 "}" +
 
-                // Check for Hls.js
+                // Hls.js
                 "try {" +
                 "  var videos = document.querySelectorAll('video');" +
                 "  for (var i = 0; i < videos.length; i++) {" +
                 "    var v = videos[i];" +
-                "    if (v.hls && v.hls.url) {" +
-                "      if (!seen[v.hls.url]) {" +
-                "        seen[v.hls.url] = true;" +
-                "        found.push(v.hls.url);" +
-                "        console.log('HLS FOUND (hls.js): ' + v.hls.url);" +
-                "      }" +
+                "    if (v.hls && v.hls.url && !seen[v.hls.url]) {" +
+                "      seen[v.hls.url] = true;" +
+                "      found.push(v.hls.url);" +
+                "      console.log('HLS_FOUND:' + v.hls.url);" +
                 "    }" +
                 "    if (v.currentSrc && v.currentSrc.indexOf('.m3u8') > -1 && !seen[v.currentSrc]) {" +
                 "      seen[v.currentSrc] = true;" +
                 "      found.push(v.currentSrc);" +
-                "      console.log('HLS FOUND (video src): ' + v.currentSrc);" +
+                "      console.log('HLS_FOUND:' + v.currentSrc);" +
                 "    }" +
                 "  }" +
                 "} catch(e) {}" +
 
-                // Check performance API for resource entries
+                // Performance API
                 "try {" +
                 "  var entries = performance.getEntriesByType('resource');" +
                 "  for (var i = 0; i < entries.length; i++) {" +
@@ -813,32 +818,32 @@ public class MainActivity extends AppCompatActivity {
                 "    if (name && name.indexOf('.m3u8') > -1 && !seen[name]) {" +
                 "      seen[name] = true;" +
                 "      found.push(name);" +
-                "      console.log('HLS FOUND (perf): ' + name);" +
+                "      console.log('HLS_FOUND:' + name);" +
                 "    }" +
                 "  }" +
                 "} catch(e) {}" +
 
-                // Check for XHR/fetch .m3u8 in window
+                // Monkey-patch XHR
                 "try {" +
                 "  if (window.XMLHttpRequest) {" +
                 "    var origOpen = XMLHttpRequest.prototype.open;" +
                 "    XMLHttpRequest.prototype.open = function(method, url) {" +
                 "      if (url && url.indexOf('.m3u8') > -1) {" +
-                "        console.log('HLS FOUND (xhr): ' + url);" +
+                "        console.log('HLS_FOUND:' + url);" +
                 "      }" +
                 "      return origOpen.apply(this, arguments);" +
                 "    };" +
                 "  }" +
                 "} catch(e) {}" +
 
-                // Check for fetch
+                // Monkey-patch fetch
                 "try {" +
                 "  if (window.fetch) {" +
                 "    var origFetch = window.fetch;" +
                 "    window.fetch = function(url) {" +
                 "      var urlStr = typeof url === 'string' ? url : (url.url || url.toString());" +
                 "      if (urlStr && urlStr.indexOf('.m3u8') > -1) {" +
-                "        console.log('HLS FOUND (fetch): ' + urlStr);" +
+                "        console.log('HLS_FOUND:' + urlStr);" +
                 "      }" +
                 "      return origFetch.apply(this, arguments);" +
                 "    };" +
@@ -852,28 +857,20 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (webView != null) {
-            webView.onResume();
-        }
+        if (webView != null) webView.onResume();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        if (webView != null) {
-            webView.onPause();
-        }
-        if (isMonitoring) {
-            stopMonitoring();
-        }
+        if (webView != null) webView.onPause();
+        if (isMonitoring) stopMonitoring();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (webView != null) {
-            webView.destroy();
-        }
+        if (webView != null) webView.destroy();
         handler.removeCallbacksAndMessages(null);
     }
 
@@ -889,7 +886,9 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        if (webView.canGoBack()) {
+        if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        } else if (webView.canGoBack()) {
             webView.goBack();
         } else {
             super.onBackPressed();
