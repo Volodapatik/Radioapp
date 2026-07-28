@@ -658,8 +658,8 @@ public class MainActivity extends AppCompatActivity {
         totalRequests = 0;
 
         // Reset UI
-        progressBar.setVisibility(View.GONE);
-        tvStatus.setVisibility(View.GONE);
+        if (progressBar != null) progressBar.setVisibility(View.GONE);
+        if (tvStatus != null) tvStatus.setVisibility(View.GONE);
         tvResultsTitle.setVisibility(View.GONE);
         btnGenerateM3U8.setVisibility(View.GONE);
         monitorBar.setVisibility(View.GONE);
