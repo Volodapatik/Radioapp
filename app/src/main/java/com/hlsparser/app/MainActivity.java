@@ -199,6 +199,28 @@ public class MainActivity extends AppCompatActivity {
             webViewContainer.setLayoutParams(new CoordinatorLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.MATCH_PARENT));
+
+            // Add WebView placeholder
+            tvWebViewPlaceholder = new TextView(this);
+            tvWebViewPlaceholder.setText("Вставте URL і натисніть Аналізувати");
+            tvWebViewPlaceholder.setTextSize(16);
+            tvWebViewPlaceholder.setGravity(android.view.Gravity.CENTER);
+            tvWebViewPlaceholder.setPadding(64, 64, 64, 64);
+            tvWebViewPlaceholder.setTextColor(0xFF999999);
+            tvWebViewPlaceholder.setLayoutParams(new FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT));
+            webViewContainer.addView(tvWebViewPlaceholder);
+
+            // Progress
+            progressWebView = new ProgressBar(this);
+            progressWebView.setLayoutParams(new FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    android.view.Gravity.CENTER));
+            progressWebView.setVisibility(View.GONE);
+            webViewContainer.addView(progressWebView);
+
             // CoordinatorLayout children are added in order; topBar is first
             coordinator.addView(webViewContainer, 1);
         }
